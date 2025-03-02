@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -10,9 +11,18 @@ import multiprocessing
 from multiprocessing import Process, freeze_support
 import os
 
+HEADLESS=True
+
 class SafetyKoreaCrawler:
-    def __init__(self, index):
-        self.driver = webdriver.Chrome()
+    def __init__(self, index, headless=False):
+        chrome_options = Options()
+        if headless:
+            chrome_options.add_argument('--headless=new')
+            chrome_options.add_argument('--no-sandbox')
+            chrome_options.add_argument('--disable-dev-shm-usage')
+            chrome_options.add_argument('--window-size=1920,1080')
+        
+        self.driver = webdriver.Chrome(options=chrome_options)
         self.crawled_data = []
         self.existing_cert_numbers = set()
         self.output_path = f"output/{index}.json"  # 인덱스.json 형식으로 저장
@@ -167,7 +177,7 @@ class SafetyKoreaCrawler:
 def run_crawler(index):
     """각 프로세스에서 실행될 크롤러 함수"""
     try:
-        crawler = SafetyKoreaCrawler(index)
+        crawler = SafetyKoreaCrawler(index, headless=HEADLESS)  # headless 모드 활성화
         print(f"Process {index}: 크롤링 시작 - 출력 파일: {index}.json")
         crawler.crawl(index)
     except Exception as e:
